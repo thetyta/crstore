@@ -2,56 +2,45 @@ import { useState } from 'react';
 import { api } from '@/utils/axios';
 import { toaster } from '@/components/ui/toaster';
 
-export default function UserCrud({ endpoint, fetchData, setOpen }) {
+export default function UserCrud({ fetchData, setOpen }) {
   const [loadingSave, setLoadingSave] = useState(false);
 
   const criarItem = async ({ input, setInput }) => {
-    if (!input.nome || !input.email || !input.cpf || !input.estudante || !input.password) {
+    if (!input.name || !input.email || !input.cpf || !input.phone || !input.password || !input.role || !input.username) {
       toaster.create({ title: 'Preencha todos os campos corretamente', type: 'error', duration: 3000 });
       return;
     }
-    
+    if (input.cpf.length < 11) {
+      toaster.create({ title: 'CPF inválido', type: 'error', duration: 3000 });
+      return;
+    }
+
     try {
       setLoadingSave(true);
-      if (input.estudante === "true") {
-        input.estudante = true;
-      } else {
-        input.estudante = false;
-      }
-      await api.post(endpoint, {
-        nome: input.nome,
+      await api.post('/criar-usuario', {
+        name: input.name,
         email: input.email,
         cpf: input.cpf,
-        estudante: input.estudante,
         password: input.password,
-        idCargo: input.idCargo? parseInt(input.idCargo) : null
-      });
-      console.log("Dados enviados:", {
-        nome: input.nome,
-        email: input.email,
-        cpf: input.cpf,
-        estudante: input.estudante,
-        password: input.password,
-        idCargo: input.idCargo? parseInt(input.idCargo) : null
+        role: input.role? input.role : 'user',
+        username: input.username,
+        phone: input.phone,
       });
       await fetchData();
       setInput({
-        nome: '',
+        name: '',
         email: '',
         cpf: '',
-        estudante: '',
         password: '',
-        idCargo: ''
+        role: '',
+        username: '',
+        phone: '',
       });
       toaster.create({ title: 'Usuário criado com sucesso', type: 'success', duration: 3000 });
     } catch (error) {
       toaster.create({ title: `Erro ao criar usuário: ${error}`, type: 'error', duration: 3000 });
-      console.log("Dados enviados:", {
-        nome: input.nome,
-        email: input.email,
-        cpf: input.cpf,
-        estudante: input.estudante,
-      });
+      console.log(`dados enviados: ${JSON.stringify(input)}`);
+      
     } finally {
       setLoadingSave(false);
     }
@@ -60,16 +49,13 @@ export default function UserCrud({ endpoint, fetchData, setOpen }) {
   const editarItem = async ({ id, inputEdit, setInputEdit, task }) => {
     const updatedData = {};
   
-    if (inputEdit.nome && inputEdit.nome !== task.nome) updatedData.nome = inputEdit.nome;
+    if (inputEdit.name && inputEdit.name !== task.name) updatedData.name = inputEdit.name;
     if (inputEdit.email && inputEdit.email !== task.email) updatedData.email = inputEdit.email;
     if (inputEdit.cpf && inputEdit.cpf !== task.cpf) updatedData.cpf = inputEdit.cpf;
-    if (inputEdit.idCargo && inputEdit.idCargo !== task.idCargo) updatedData.idCargo = parseInt(inputEdit.idCargo);
-    if (inputEdit.estudante === 'true'){
-      updatedData.estudante = true;
-    } else {
-      updatedData.estudante = false;  
-    }
-  
+    if (inputEdit.role && inputEdit.role !== task.role) updatedData.role = inputEdit.role;
+    if (inputEdit.username && inputEdit.username !== task.username) updatedData.username = inputEdit.username;
+    if (inputEdit.phone && inputEdit.phone !== task.phone) updatedData.phone = inputEdit.phone;
+
     if (Object.keys(updatedData).length === 0) {
       toaster.create({ title: 'Nenhuma alteração detectada', type: 'info', duration: 3000 });
       return;
@@ -77,17 +63,16 @@ export default function UserCrud({ endpoint, fetchData, setOpen }) {
   
     try {
       setLoadingSave(true);
-  
-      await api.patch(`${endpoint}/${id}`, updatedData);
-  
+      await api.patch(`/criar-usuario/${id}`, updatedData);
       await fetchData();
       setInputEdit({
-        nome: '',
-        email: '',
-        cpf: '',
-        estudante: '',
-        idCargo: ''
-      });
+      name: '',
+      email: '',
+      cpf: '',
+      role: '',
+      username: '',
+      phone: '',
+    });
       setOpen?.(false);
       toaster.create({ title: 'Usuário atualizado com sucesso', type: 'success', duration: 3000 });
     } catch (error) {
@@ -101,7 +86,7 @@ export default function UserCrud({ endpoint, fetchData, setOpen }) {
   const excluirItem = async ({ id, items, setItems, currentPage, itemsPerPage, setCurrentPage }) => {
     try {
       if (confirm('Deseja excluir este item?')) {
-        await api.delete(`${endpoint}/${id}`);
+        await api.delete(`/deletar-usuario/${id}`);
         
         const novasItems = items.filter(item => item.id !== id);
         setItems(novasItems);
@@ -114,7 +99,7 @@ export default function UserCrud({ endpoint, fetchData, setOpen }) {
         toaster.create({ title: 'Deletado com sucesso', type: 'success', duration: 3000 });
       }
     } catch (error) {
-      toaster.create({ title: 'Erro ao deletar', type: 'error', duration: 3000 });
+      toaster.create({ title: `Erro ao deletar ${error}`, type: 'error', duration: 3000 });
     }
   };
 
