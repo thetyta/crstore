@@ -13,12 +13,13 @@ import { Toaster, toaster } from "@/components/ui/toaster"
 import { useRouter } from 'next/navigation';
 
 export default function LoginInput({ mandarDadosdofilho }) {
-  const [Email, setEmail] = useState('');
-  const [Password, setPassword] = useState('');
-  const content = { email: Email, password: Password };
+  const router = useRouter()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const content = {email: email, password: password };
 
   const mandarDados = async () => {
-    if (!Password || !Email) {
+    if (!password || !email) {
       toaster.create({
         title: "Preencha todos os valores!",
         type: "error"
@@ -46,6 +47,7 @@ export default function LoginInput({ mandarDadosdofilho }) {
         <Input
           variant="outline"
           placeholder="Login"
+          value={email}
           _placeholder={{ color: "white" }}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -54,6 +56,7 @@ export default function LoginInput({ mandarDadosdofilho }) {
         <PasswordInput
           variant="outline"
           placeholder="Senha"
+          value={password}
           _placeholder={{ color: "white" }}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -78,11 +81,13 @@ export default function LoginInput({ mandarDadosdofilho }) {
       <Text m="0" mt="1%" mb="1%" textAlign={"center"} >OU</Text>
       <Button
         borderRadius={5}
+        onClick={() => router.push('/cadastrar')}
         _hover={{
           opacity: 0.9,
           transform: "scale(1.01)",
           transition: "0.3s",
         }}
+        
       >Cadastrar
       </Button>
       <Toaster />
