@@ -1,6 +1,7 @@
 'use client'
 import { Box, Image, Heading, Text, VStack } from "@chakra-ui/react";
 import React from 'react';
+import { useEffect } from 'react';
 import LoginInput from "@/components/GeneralComp/Login/loginInput";
 import { Toaster, toaster } from "@/components/ui/toaster"
 import { useRouter } from 'next/navigation';
@@ -9,7 +10,12 @@ import { api } from "@/utils/axios";
 
 export default function LoginPc() {
   const router = useRouter();
-
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/main");
+    }
+  }, [router]);
 
 const loginUsuario = async (content) => {
   try {
