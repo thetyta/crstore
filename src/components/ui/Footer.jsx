@@ -6,8 +6,8 @@ function Footer() {
       padding: "1rem 0",
       zIndex: 1,
       position: "relative",
-      background: "#832d00",
-      color: "white",
+      background: "#dedede",
+      color: "#404040",
       marginTop: "auto"
     }}>
       © {new Date().getFullYear()} Restaurante Maldito. Todos os direitos reservados.

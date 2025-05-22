@@ -8,31 +8,11 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 export default function Main() {
-  const [open, setOpen] = useState(false)
-  const [userRole, setUserRole] = useState(null);
   const grouped = items.reduce((acc, item) => {
     acc[item.category] = acc[item.category] || [];
     acc[item.category].push(item);
     return acc;
   }, {});
-
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    api.get("/usuario/info", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => {
-        console.log("Dados recebidos:", res.data);
-        setUserRole(res.data.resposta.role);
-        
-      })
-      .catch((err) => {
-        console.error("Erro ao buscar usuário:", err);
-        setUserRole(null);
-      });
-  }
-}, []);
   const sliderSettings = {
     dots: true,
     infinite: false,
@@ -55,80 +35,22 @@ useEffect(() => {
       }
     ]
   };
-function RandomCirclesBackground({ count = 10 }) {
-  const circles = Array.from({ length: count }).map((_, i) => {
-    const size = Math.random() * 80 + 40; // menor: entre 40px e 120px
-    const top = Math.random() * 95;       // pode ir até 95% da tela
-    const left = Math.random() * 95;      // pode ir até 95% da tela
-    const opacity = 1
-    const color = ["#800000", "#ffcccc", ][Math.floor(Math.random() * 1)];
-    return { size, top, left, opacity, color };
-  });
-
-  return (
-    <Box
-      position="fixed"
-      top={0}
-      left={0}
-      w="100vw"
-      h="100vh"
-      zIndex={0}
-      pointerEvents="none"
-      overflow="hidden"
-    >
-      {circles.map((c, i) => (
-        <Box
-          key={i}
-          position="absolute"
-          borderRadius="full"
-          bg={c.color}
-          opacity={c.opacity}
-          width={`${c.size}px`}
-          height={`${c.size}px`}
-          top={`${c.top}%`}
-          left={`${c.left}%`}
-          filter="blur(2px)"
-        />
-      ))}
-    </Box>
-  );
-}
 
   return (
     <>
-    <RandomCirclesBackground count={40} />
-      {userRole === "delivery" && (
-        <Drawer.Root open={open} onOpenChange={(e) => setOpen(e.open)} placement={'start'} size={'xs'}>
-          <Drawer.Trigger asChild>
-            <Button variant="outline" size="sm">
-              Open Drawer
-            </Button>
-          </Drawer.Trigger>
-          <Portal>
-            <Drawer.Backdrop />
-            <Drawer.Positioner>
-              <Drawer.Content>
-                <Drawer.Header>
-                  <Drawer.Title>Menu</Drawer.Title>
-                </Drawer.Header>
-                <Drawer.Body>
-                  <p>oi</p>
-                </Drawer.Body>
-                <Drawer.Footer></Drawer.Footer>
-                <Drawer.CloseTrigger asChild>
-                  <CloseButton size="sm" />
-                </Drawer.CloseTrigger>
-              </Drawer.Content>
-            </Drawer.Positioner>
-          </Portal>
-        </Drawer.Root>
-      )}
-      <Flex direction="column" align="center" minH="100vh" p={8} background={'#d57022'}>
+      <Flex direction="column" align="center" minH="100vh" p={8} background={'#ebebeb'}>
         {Object.entries(grouped).map(([category, items]) => (
           <Box key={category} w="100%" maxW="1200px" mb={10}>
-            <Heading size="lg" mb={4} color="white" background={'#ac4f11'} textAlign="center" rounded="md" position={"relative"}>{category}</Heading>
+            <Heading size="lg" mb={4} color="white" background={'#b50000'} textAlign="center" rounded="md" position={"relative"}>{category}</Heading>
             <Separator mb={4} position={"relative"}/>
-            <Box>
+            <Box
+              sx={{
+                  ".slick-prev:before, .slick-next:before": {
+                    color: "#000000", // sua cor desejada
+                    fontSize: "30px",
+                  },
+                }}
+              >
               <Slider {...sliderSettings}>
                 {items.map((item) => (
                   <Box key={item.id} px={2}>
@@ -148,8 +70,7 @@ function RandomCirclesBackground({ count = 10 }) {
                         </Text>
                       </Card.Body>
                       <Card.Footer gap="2">
-                        <Button variant="solid">Buy now</Button>
-                        <Button variant="ghost">Add to cart</Button>
+                        <Button variant="solid">Adicionar no carrinho</Button>
                       </Card.Footer>
                     </Card.Root>
                   </Box>

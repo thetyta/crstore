@@ -9,30 +9,22 @@ import {
 import { useEffect, useState } from 'react';
 import TableCRUD from '@/components/Admin/Table';
 import PaginationDoida from '@/components/Admin/Pagination';
-import DrawerComp from '@/components/Admin/Product/DrawerComp';
-import Dialogo from '@/components/Admin/Product/Dialogue';
+import DrawerComp from '@/components/Admin/Address/DrawerComp';
+import Dialogue from '@/components/Admin/Address/Dialogue';
 import ItemsPorPag from '@/components/Admin/ItemsPorPag';
 import { api } from '@/utils/axios';
 import { toaster } from '@/components/ui/toaster';
-import ProductCrud from '@/components/Admin/CRUDS/ProductCrud';
+import AddressCrud from '@/components/Admin/CRUDS/AddressCrud';
 
-export default function Produtos() {
+export default function Enderecos() {
   const [items, setItems] = useState([]);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [input, setInput] = useState({
-    name: '',
-    description: '',
-    price: '',
-    imageURL: '',
-    idCategory: '',
+    street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '', idUser: ''
   });
   const [inputEdit, setInputEdit] = useState({
-    name: '',
-    description: '',
-    price: '',
-    imageURL: '',
-    idCategory: '',
+    street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '', idUser: ''
   });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false); 
@@ -41,17 +33,17 @@ export default function Produtos() {
   const [value, setValue] = useState([]);
   const [taskEditOriginal, setTaskEditOriginal] = useState(null);
 
-  const buscarProdutos = async () => {
+  const buscarEnderecos = async () => {
     try {
-      const response = await api.get('/produto');
+      const response = await api.get('/endereco');
       setItems(response.data.data);
     } catch (error) {
-      toaster.create({ title: 'Erro ao buscar produtos', type: 'error' });
+      toaster.create({ title: 'Erro ao buscar endereços', type: 'error' });
     }
   };
 
   useEffect(() => {
-    buscarProdutos();
+    buscarEnderecos();
   }, []);
 
   useEffect(() => {
@@ -63,13 +55,15 @@ export default function Produtos() {
     editarItem,
     excluirItem,  
     loadingSave,
-  } = ProductCrud({
-    fetchData: buscarProdutos,
+  } = AddressCrud({
+    fetchData: buscarEnderecos,
     setOpen: setIsEditOpen,
   });
 
   const itemsFiltradas = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.neighborhood.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.id.toString().includes(searchTerm)
   );
 
@@ -80,16 +74,16 @@ export default function Produtos() {
 
   return (
     <Box p={8}>
-      <Heading mb={4}>Lista de Produtos</Heading>
+      <Heading mb={4}>Lista de Endereços</Heading>
       <Flex mb={4} justifyContent="center" alignItems="center" gap={420}>
         <Input
-          placeholder="Pesquise Produtos"
+          placeholder="Pesquise Endereços"
           variant="subtle"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           width="300px"
         />
-        <Dialogo
+        <Dialogue
           input={input}
           setInput={setInput}
           submit={() => criarItem({ input, setInput })}
@@ -120,11 +114,13 @@ export default function Produtos() {
           }}
           headers={[
             { name: 'ID', value: 'id' },
-            { name: 'Nome', value: 'name' },
-            { name: 'Descrição', value: 'description' },
-            { name: 'Preço', value: 'price' },
-            { name: 'Imagem', value: 'imageURL' },
-            { name: 'Categoria', value: 'idCategory' },
+            { name: 'Rua', value: 'street' },
+            { name: 'Número', value: 'number' },
+            { name: 'Bairro', value: 'neighborhood' },
+            { name: 'Cidade', value: 'city' },
+            { name: 'Estado', value: 'state' },
+            { name: 'CEP', value: 'zipCode' },
+            { name: 'Usuário', value: 'idUser' },
           ]}
         />
 
