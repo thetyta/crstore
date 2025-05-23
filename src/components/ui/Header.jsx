@@ -77,7 +77,7 @@ export default function Header() {
                     </Box>
                     {userRole === 'admin' && (
                       <Box>
-                        <Button mb={4} background={'red'} color={'white'} onClick={() => window.location.href = '/admin/user'}>
+                        <Button mb={4} background={'red'} color={'white'} onClick={() => window.location.href = '/admin'}>
                           <GoGear />
                           CRUDS
                         </Button>
