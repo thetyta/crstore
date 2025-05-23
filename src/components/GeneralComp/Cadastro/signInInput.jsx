@@ -12,6 +12,7 @@ export default function UserRegisterForm({ input, setInput, onSubmit }) {
     email: !input.email,
     password: !input.password,
     confirmPassword: !input.confirmPassword || input.password !== input.confirmPassword,
+    role: !input.role,
   };
 
   // Função para submit
@@ -99,6 +100,32 @@ export default function UserRegisterForm({ input, setInput, onSubmit }) {
         </InputGroup>
         {showErrors && errors.email && (
           <Text color="red.400" fontSize="sm" mt={1}>Preencha o email.</Text>
+        )}
+      </Box>
+      {/* Select de Role */}
+      <Box mt="2%" w="100%">
+        <InputGroup>
+          <select
+            value={input.role || ""}
+            onChange={e => setInput({ ...input, role: e.target.value })}
+            style={{
+              width: "100%",
+              height: "40px",
+              borderRadius: "8px",
+              padding: "0 8px",
+              background: "#1a202c",
+              color: "white",
+              border: showErrors && errors.role ? "1px solid #fc8181" : "1px solid #2d3748"
+            }}
+          >
+            <option value="">Selecione o tipo de usuário</option>
+            <option value="user">Usuário</option>
+            <option value="delivery">Entregador</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </InputGroup>
+        {showErrors && errors.role && (
+          <Text color="red.400" fontSize="sm" mt={1}>Selecione o tipo de usuário.</Text>
         )}
       </Box>
       <Flex gap={4} w="100%">

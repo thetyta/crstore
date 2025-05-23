@@ -2,7 +2,7 @@
 import { Flex, Box, Image, Input, Drawer, Button, Portal, CloseButton } from "@chakra-ui/react";
 import { FaSearch } from "react-icons/fa";
 import { FaShoppingCart } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { api } from "@/utils/axios";
 import { FaAlignJustify } from "react-icons/fa";
 import { MdOutlineDeliveryDining } from "react-icons/md";
@@ -48,7 +48,7 @@ export default function Header() {
       {/* Logo e menu */}
       <Flex align="center" gap={2}>
         <Image src="/pizza.png" alt="Logo" h="50px" />
-        {userRole === "delivery" && (
+        {(userRole === "delivery" || userRole === 'admin') && (
           <Drawer.Root open={open} onOpenChange={(e) => setOpen(e.open)} placement={'start'} size={'xs'}>
             <Drawer.Trigger asChild>
               <Button variant="outline" size="sm" background={'red'} color={'white'} borderRadius={'2%'} _hover={{ background: 'red.600' }}>
@@ -75,6 +75,14 @@ export default function Header() {
                         Pedidos
                       </Button>
                     </Box>
+                    {userRole === 'admin' && (
+                      <Box>
+                        <Button mb={4} background={'red'} color={'white'} onClick={() => window.location.href = '/admin/user'}>
+                          <GoGear />
+                          CRUDS
+                        </Button>
+                      </Box>
+                    )}
                   </Drawer.Body>
                   <Drawer.Footer>
                     <Box>
@@ -116,6 +124,16 @@ export default function Header() {
             onClick={handleLogout}
           >
             Sair
+          </Button>
+        )}
+        {!userRole && (
+          <Button
+            background="red"
+            color="white"
+            variant="outline"
+            onClick={() => window.location.href = '/'}
+          >
+            Login
           </Button>
         )}
       </Flex>

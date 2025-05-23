@@ -40,6 +40,7 @@ export default function Produtos() {
   const [searchTerm, setSearchTerm] = useState('');
   const [value, setValue] = useState([]);
   const [taskEditOriginal, setTaskEditOriginal] = useState(null);
+  const [searchField, setSearchField] = useState('name');
 
   const buscarProdutos = async () => {
     try {
@@ -68,10 +69,16 @@ export default function Produtos() {
     setOpen: setIsEditOpen,
   });
 
-  const itemsFiltradas = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.id.toString().includes(searchTerm)
-  );
+    const itemsFiltradas = items.filter(item => {
+    if (!searchTerm) return true;
+    if (searchField === "id") {
+      return item.id?.toString().includes(searchTerm);
+    }
+        if (searchField === "idCategory") {
+      return item.idCategory?.toString().includes(searchTerm);
+    }
+    return item[searchField]?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const itemsAtuais = itemsFiltradas.slice(
     (currentPage - 1) * itemsPerPage,
@@ -81,9 +88,27 @@ export default function Produtos() {
   return (
     <Box p={8}>
       <Heading mb={4}>Lista de Produtos</Heading>
-      <Flex mb={4} justifyContent="center" alignItems="center" gap={420}>
+      <Flex mb={4} justifyContent="center" alignItems="center" gap={20}>
+        <select
+          value={searchField}
+          onChange={e => setSearchField(e.target.value)}
+          style={{ width: "150px", height: "40px", borderRadius: "8px", padding: "0 8px" }}
+        >
+          <option value="name">Nome</option>
+          <option value="description">Descrição</option>
+          <option value="id">ID</option>
+          <option value="idCategory">ID Categoria</option>
+        </select>
         <Input
-          placeholder="Pesquise Produtos"
+          placeholder={`Pesquise por ${
+            searchField === 'name'
+              ? 'nome'
+              : searchField === 'description'
+              ? 'descrição'
+              : searchField === 'id'
+              ? 'ID'
+              : 'ID Categoria'
+          }`}
           variant="subtle"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}

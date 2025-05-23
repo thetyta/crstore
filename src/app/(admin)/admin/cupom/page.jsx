@@ -9,22 +9,28 @@ import {
 import { useEffect, useState } from 'react';
 import TableCRUD from '@/components/Admin/Table';
 import PaginationDoida from '@/components/Admin/Pagination';
-import DrawerComp from '@/components/Admin/Address/DrawerComp';
-import Dialogue from '@/components/Admin/Address/Dialogue';
+import DrawerComp from '@/components/Admin/Cupom/DrawerComp';
+import Dialogue from '@/components/Admin/Cupom/Dialogue';
 import ItemsPorPag from '@/components/Admin/ItemsPorPag';
 import { api } from '@/utils/axios';
 import { toaster } from '@/components/ui/toaster';
-import AddressCrud from '@/components/Admin/CRUDS/AddressCrud';
+import CupomCrud from '@/components/Admin/CRUDS/CupomCrud';
 
-export default function Enderecos() {
+export default function Cupoms() {
   const [items, setItems] = useState([]);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [input, setInput] = useState({
-    street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '', idUser: ''
+    code: '',
+    type: '',
+    value: '',
+    uses: 1,
   });
   const [inputEdit, setInputEdit] = useState({
-    street: '', number: '', neighborhood: '', city: '', state: '', zipCode: '', idUser: ''
+    code: '',
+    type: '',
+    value: '',
+    uses: 1,
   });
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false); 
@@ -32,40 +38,42 @@ export default function Enderecos() {
   const [searchTerm, setSearchTerm] = useState('');
   const [value, setValue] = useState([]);
   const [taskEditOriginal, setTaskEditOriginal] = useState(null);
+  const [searchField, setSearchField] = useState('code');
 
-  const buscarEnderecos = async () => {
+  const buscarCupoms = async () => {
     try {
-      const response = await api.get('/endereco');
+      const response = await api.get('/cupom');
       setItems(response.data.data);
     } catch (error) {
-      toaster.create({ title: 'Erro ao buscar endereços', type: 'error' });
+      toaster.create({ title: 'Erro ao buscar cupons', type: 'error' });
     }
   };
 
   useEffect(() => {
-    buscarEnderecos();
+    buscarCupoms();
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, searchField]);
 
   const {
     criarItem,
     editarItem,
     excluirItem,  
     loadingSave,
-  } = AddressCrud({
-    fetchData: buscarEnderecos,
+  } = CupomCrud({
+    fetchData: buscarCupoms,
     setOpen: setIsEditOpen,
   });
 
-  const itemsFiltradas = items.filter(item =>
-    item.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.neighborhood.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.id.toString().includes(searchTerm)
-  );
+  const itemsFiltradas = items.filter(item => {
+    if (!searchTerm) return true;
+    if (searchField === "id") {
+      return item.id?.toString().includes(searchTerm);
+    }
+    return item[searchField]?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const itemsAtuais = itemsFiltradas.slice(
     (currentPage - 1) * itemsPerPage,
@@ -74,10 +82,31 @@ export default function Enderecos() {
 
   return (
     <Box p={8}>
-      <Heading mb={4}>Lista de Endereços</Heading>
-      <Flex mb={4} justifyContent="center" alignItems="center" gap={420}>
+      <Heading mb={4}>Lista de Cupons</Heading>
+      <Flex mb={4} justifyContent="center" alignItems="center" gap={20}>
+        <select
+          value={searchField}
+          onChange={e => setSearchField(e.target.value)}
+          style={{ width: "150px", height: "40px", borderRadius: "8px", padding: "0 8px" }}
+        >
+          <option value="code">Código</option>
+          <option value="type">Tipo</option>
+          <option value="value">Valor</option>
+          <option value="uses">Usos</option>
+          <option value="id">ID</option>
+        </select>
         <Input
-          placeholder="Pesquise Endereços"
+          placeholder={`Pesquise por ${
+            searchField === 'code'
+              ? 'código'
+              : searchField === 'type'
+              ? 'tipo'
+              : searchField === 'value'
+              ? 'valor'
+              : searchField === 'uses'
+              ? 'usos'
+              : 'ID'
+          }`}
           variant="subtle"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -114,13 +143,10 @@ export default function Enderecos() {
           }}
           headers={[
             { name: 'ID', value: 'id' },
-            { name: 'Rua', value: 'street' },
-            { name: 'Número', value: 'number' },
-            { name: 'Bairro', value: 'neighborhood' },
-            { name: 'Cidade', value: 'city' },
-            { name: 'Estado', value: 'state' },
-            { name: 'CEP', value: 'zipCode' },
-            { name: 'Usuário', value: 'idUser' },
+            { name: 'Código', value: 'code' },
+            { name: 'Tipo', value: 'type' },
+            { name: 'Valor', value: 'value' },
+            { name: 'Usos', value: 'uses' },
           ]}
         />
 

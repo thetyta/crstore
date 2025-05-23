@@ -68,13 +68,7 @@ export default function AddressCrud({ fetchData, setOpen }) {
     try {
       setLoadingSave(true);
       // Só pega o token se estiver no browser
-      let token = null;
-      if (typeof window !== "undefined") {
-        token = localStorage.getItem("token");
-      }
-      await api.patch(`/criar-endereco/${id}`, updatedData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.patch(`/criar-endereco/${id}`, updatedData);
       await fetchData();
       setInputEdit({
         street: '',

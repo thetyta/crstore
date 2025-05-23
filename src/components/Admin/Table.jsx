@@ -28,13 +28,19 @@ export default function TableCRUD({
           <Table.Row key={cargo.id}>
             {headers.map((header, i) => (
               <Table.Cell key={i}>
-                {header.value === "estudante"
-                  ? cargo[header.value]
-                    ? "Sim"
-                    : "Não"
-                  : typeof cargo[header.value] === 'object' && cargo[header.value] !== null
-                  ? JSON.stringify(cargo[header.value]) // Converte o objeto para string legível
-                  : cargo[header.value]}
+                {header.value.toLowerCase().includes("image") && cargo[header.value] ? (
+                  <img
+                    src={cargo[header.value]}
+                    alt="imagem"
+                    style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "6px" }}
+                  />
+                ) : header.value === "description" && cargo[header.value] ? (
+                  <span style={{ wordBreak: "break-word", whiteSpace: "pre-line", maxWidth: "200px", display: "block" }}>
+                    {cargo[header.value]}
+                  </span>
+                ) : (
+                  cargo[header.value]
+                )}
               </Table.Cell>
             ))}
             <Table.Cell textAlign="end">

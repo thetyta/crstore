@@ -8,6 +8,8 @@ import {
   Portal,
 } from "@chakra-ui/react";
 import { IoAddCircleOutline } from "react-icons/io5";
+import { useEffect, useState } from "react";
+import { api } from "@/utils/axios";
 
 export default function Dialogo({
   input,
@@ -17,6 +19,16 @@ export default function Dialogo({
   open,
   setOpen,
 }) {
+  const [categorias, setCategorias] = useState([]);
+
+  useEffect(() => {
+    if (open) {
+      api.get("/categoria")
+        .then(res => setCategorias(res.data.data || []))
+        .catch(() => setCategorias([]));
+    }
+  }, [open]);
+
   return (
     <HStack wrap="wrap" gap="4">
       <Dialog.Root
@@ -63,12 +75,26 @@ export default function Dialogo({
                   value={input.imageURL}
                   onChange={(e) => setInput({ ...input, imageURL: e.target.value })}
                 />
-                Categoria (ID)
-                <Input
-                  placeholder="ID da Categoria"
+                Categoria
+                <select
                   value={input.idCategory}
-                  onChange={(e) => setInput({ ...input, idCategory: e.target.value })}
-                />
+                  onChange={e => setInput({ ...input, idCategory: e.target.value })}
+                  style={{
+                    height: "40px",
+                    borderRadius: "8px",
+                    padding: "0 8px",
+                    background: "#1a202c",
+                    color: "white",
+                    border: "1px solid #2d3748"
+                  }}
+                >
+                  <option value="">Selecione a categoria</option>
+                  {categorias.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
               </Dialog.Body>
               <Dialog.Footer>
                 <Dialog.ActionTrigger asChild>
