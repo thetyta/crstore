@@ -12,10 +12,10 @@ export default function AdminProtegida({ children }) {
       try {
         const res = await api.get("/usuario/info");
         if (res.data?.resposta?.role !== "admin") {
-          router.replace("/"); // Redireciona para home se não for admin
+          router.replace("/");
         }
       } catch {
-        router.replace("/"); // Redireciona se não autenticado
+        router.replace("/");
       } finally {
         setLoading(false);
       }
@@ -23,7 +23,7 @@ export default function AdminProtegida({ children }) {
     checkAdmin();
   }, [router]);
 
-  if (loading) return null; // Ou um spinner
+  if (loading) return null;
 
   return children;
 }

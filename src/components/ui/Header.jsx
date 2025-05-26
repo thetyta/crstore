@@ -8,6 +8,7 @@ import { FaAlignJustify } from "react-icons/fa";
 import { MdOutlineDeliveryDining } from "react-icons/md";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { GoGear } from "react-icons/go";
+import { IconButton } from "@chakra-ui/react"
 
 export default function Header() {
   const [open, setOpen] = useState(false)
@@ -101,7 +102,14 @@ export default function Header() {
           </Drawer.Root>
         )}
       </Flex>
-      <Box flex="1" maxW="500px" mx={8} position="relative">
+      <Box
+        flex="none"
+        maxW="320px"
+        w="100%"
+        mx="auto"
+        position="relative"
+        alignSelf="center"
+      >
         <Box position="absolute" left="12px" top="50%" transform="translateY(-50%)" zIndex="1">
           <FaSearch color="black" />
         </Box>
@@ -112,10 +120,13 @@ export default function Header() {
           _placeholder={{ color: "gray.500" }}
           color={'black'}
           pl="2.2rem"
+          width="100%"
         />
       </Box>
       <Flex align="center" gap={4} position="absolute" right="20px" top="50%" transform="translateY(-50%)">
-        <FaShoppingCart color='black' />
+        <IconButton bg={'#dedede'} onClick={() => window.location.href = '/carrinho'}>
+          <FaShoppingCart color='black' />
+        </IconButton>
         {userRole && (
           <Button
             background="red"
