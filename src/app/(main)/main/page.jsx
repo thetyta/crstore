@@ -37,10 +37,6 @@ export default function Main() {
       router.push("/login");
       return;
     }
-
-    console.log('ADICIONANDO AO CARRINHO: ', item);
-    
-    
     try {
       await api.post(
         "/usuario/carrinho",
@@ -75,7 +71,6 @@ export default function Main() {
     fetchData();
   }, []);
 
-  // Agrupa produtos por categoria
   const grouped = categorias.reduce((acc, cat) => {
     acc[cat.name] = produtos.filter(prod => prod.idCategory === cat.id);
     return acc;

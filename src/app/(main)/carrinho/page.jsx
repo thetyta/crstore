@@ -45,9 +45,7 @@ export default function CarrinhoPage() {
 
   // Atualiza a quantidade de um item
   const handleUpdateQuantity = async (idProduct, newQuantity) => {
-    console.log((newQuantity));
     
-    if (newQuantity < 1) return;
     const token = localStorage.getItem("token");
     try {
       await api.post(
@@ -79,17 +77,37 @@ export default function CarrinhoPage() {
         { idProduct, quantity: -item.quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Atualiza o carrinho local
       setCart(cart => cart.filter(item => item.idProduct !== idProduct));
-      // Recarrega do backend
       const res = await api.get("/usuario/info", {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCart(res.data.resposta.cart || []);
     } catch (err) {
-      // Trate o erro se quiser
     }
   };
+
+  // Função para finalizar a compra
+  const handleFinalizarCompra = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      await api.post(
+        "/criar-pedido-do-carrinho",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Limpa o carrinho e redireciona ou mostra mensagem de sucesso
+      setCart([]);
+      router.push("/main/pedidos"); // ou para a página de pedidos
+    } catch (err) {
+      alert("Erro ao finalizar compra!");
+    }
+  };
+
+  function getTotal() {
+    return cart.reduce((total, item) => {
+      const prod = produtos.find(p => p.id === item.idProduct);
+      return total + (prod ? prod.price * item.quantity : 0);
+    }, 0);
+  }
 
   return (
     <Box maxW="800px" mx="auto" mt={10} p={4}>
@@ -122,24 +140,23 @@ export default function CarrinhoPage() {
                     <IconButton
                       size="sm"
                       aria-label="Diminuir"
-                      onClick={() => handleUpdateQuantity(item.idProduct, item.quantity - 1)}
-                      isDisabled={item.quantity <= 1}
+                      onClick={() => handleUpdateQuantity(item.idProduct, -1)}
                       mr={2}
                       variant="outline"
                       bg="#a30c02"
                       borderColor="gray.300"
-                      _hover={{ bg: "gray.100" }}
+                      _hover={{ bg: "red.800" }}
                     ><CiCircleMinus color="white" /> </IconButton>
                     <Text mx={2} color={"black"}>{item.quantity}</Text>
                     <IconButton
                       size="sm"
                       aria-label="Aumentar"
-                      onClick={() => handleUpdateQuantity(item.idProduct, item.quantity + 1)}
+                      onClick={() => handleUpdateQuantity(item.idProduct, 1)}
                       mr={2}
                       variant="outline"
                       bg="green"
                       borderColor="gray.300"
-                      _hover={{ bg: "gray.100" }}
+                      _hover={{ bg: "green.800" }}
                     ><CiCirclePlus color="white" /></IconButton>
                     <IconButton
                       size="sm"
@@ -150,7 +167,7 @@ export default function CarrinhoPage() {
                     ><MdDelete color="white"/> </IconButton>
                   </Flex>
                   <Text color="green.700" fontWeight="bold" mt={2}>
-                    Preço: R$ {prod?.price}
+                    Preço unitário: R$ {prod?.price} <br />Preço total: R$ {(prod?.price * item.quantity).toFixed(2)}
                   </Text>
                 </Box>
               </Flex>
@@ -158,6 +175,21 @@ export default function CarrinhoPage() {
           })}
         </Stack>
       )}
+      {cart.length > 0 && ( 
+        <Flex mt={8} justify="space-between" align="center" bg={"white"} rounded={'md'}>
+          <Button
+            bg={'green'}
+            color={'white'}
+            fontWeight={'bold'}
+            onClick={handleFinalizarCompra}
+          >
+            Finalizar compra
+          </Button>
+          <Text fontWeight="bold" fontSize="lg" color="green.700">
+            Total: R$ {getTotal().toFixed(2)}
+          </Text>
+        </Flex>
+      )}    
     </Box>
   );
 }

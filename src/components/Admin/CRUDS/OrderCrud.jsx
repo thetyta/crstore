@@ -9,7 +9,6 @@ export default function OrderCrud({ fetchData, setOpen }) {
   const criarItem = async ({ input, setInput }) => {
     if (
       !input.idUserCustomer ||
-      !input.idPayment ||
       !input.totalPrice ||
       !input.status
     ) {
@@ -20,15 +19,15 @@ export default function OrderCrud({ fetchData, setOpen }) {
     try {
       setLoadingSave(true);
       await api.post('/criar-pedido', {
-        idUserCustomer: input.idUserCustomer,
-        idUserDelivery: input.idUserDelivery || null,
-        idAddress: input.idAddress || null,
-        idPayment: input.idPayment,
-        idCupom: input.idCupom || null,
+        idUserCustomer: Number(input.idUserCustomer),
+        idUserDelivery: input.idUserDelivery ? Number(input.idUserDelivery) : null,
+        idAddress: input.idAddress ? Number(input.idAddress) : null,
+        idPayment: input.idPayment ? Number(input.idPayment) : null,
+        idCupom: input.idCupom ? Number(input.idCupom) : null,
         status: input.status,
         payStatus: input.payStatus || 'pending',
-        totalPrice: input.totalPrice,
-        totalDiscount: input.totalDiscount || 0,
+        totalPrice: Number(input.totalPrice),
+        totalDiscount: input.totalDiscount ? Number(input.totalDiscount) : 0,
       });
       await fetchData();
       setInput({
@@ -54,15 +53,15 @@ export default function OrderCrud({ fetchData, setOpen }) {
   // EDITAR PEDIDO
   const editarItem = async ({ id, inputEdit, setInputEdit, task }) => {
     const updatedData = {};
-    if (inputEdit.idUserCustomer && inputEdit.idUserCustomer !== task.idUserCustomer) updatedData.idUserCustomer = inputEdit.idUserCustomer;
-    if (inputEdit.idUserDelivery !== undefined && inputEdit.idUserDelivery !== task.idUserDelivery) updatedData.idUserDelivery = inputEdit.idUserDelivery;
-    if (inputEdit.idAddress !== undefined && inputEdit.idAddress !== task.idAddress) updatedData.idAddress = inputEdit.idAddress;
-    if (inputEdit.idPayment && inputEdit.idPayment !== task.idPayment) updatedData.idPayment = inputEdit.idPayment;
-    if (inputEdit.idCupom !== undefined && inputEdit.idCupom !== task.idCupom) updatedData.idCupom = inputEdit.idCupom;
+    if (inputEdit.idUserCustomer && inputEdit.idUserCustomer !== task.idUserCustomer) updatedData.idUserCustomer = Number(inputEdit.idUserCustomer);
+    if (inputEdit.idUserDelivery !== undefined && inputEdit.idUserDelivery !== task.idUserDelivery) updatedData.idUserDelivery = inputEdit.idUserDelivery ? Number(inputEdit.idUserDelivery) : null;
+    if (inputEdit.idAddress !== undefined && inputEdit.idAddress !== task.idAddress) updatedData.idAddress = inputEdit.idAddress ? Number(inputEdit.idAddress) : null;
+    if (inputEdit.idPayment && inputEdit.idPayment !== task.idPayment) updatedData.idPayment = Number(inputEdit.idPayment);
+    if (inputEdit.idCupom !== undefined && inputEdit.idCupom !== task.idCupom) updatedData.idCupom = inputEdit.idCupom ? Number(inputEdit.idCupom) : null;
     if (inputEdit.status && inputEdit.status !== task.status) updatedData.status = inputEdit.status;
     if (inputEdit.payStatus && inputEdit.payStatus !== task.payStatus) updatedData.payStatus = inputEdit.payStatus;
-    if (inputEdit.totalPrice && inputEdit.totalPrice !== task.totalPrice) updatedData.totalPrice = inputEdit.totalPrice;
-    if (inputEdit.totalDiscount !== undefined && inputEdit.totalDiscount !== task.totalDiscount) updatedData.totalDiscount = inputEdit.totalDiscount;
+    if (inputEdit.totalPrice && inputEdit.totalPrice !== task.totalPrice) updatedData.totalPrice = Number(inputEdit.totalPrice);
+    if (inputEdit.totalDiscount !== undefined && inputEdit.totalDiscount !== task.totalDiscount) updatedData.totalDiscount = inputEdit.totalDiscount ? Number(inputEdit.totalDiscount) : 0;
 
     if (Object.keys(updatedData).length === 0) {
       toaster.create({ title: 'Nenhuma alteração detectada', type: 'info', duration: 3000 });

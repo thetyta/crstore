@@ -46,7 +46,6 @@ export default function Header() {
       boxShadow="sm"
       w="100%"
     >
-      {/* Logo e menu */}
       <Flex align="center" gap={2}>
         <Image src="/pizza.png" alt="Logo" h="50px" />
         {(userRole === "delivery" || userRole === 'admin') && (
@@ -65,13 +64,13 @@ export default function Header() {
                   </Drawer.Header>
                   <Drawer.Body>
                     <Box mb={4}>
-                      <Button background={'red'} color={'white'}>
+                      <Button background={'red'} color={'white'} onClick={() => window.location.href = '/entregas'}>
                         <MdOutlineDeliveryDining />
                         Minhas Entregas
                       </Button>
                     </Box>
                     <Box>
-                      <Button mb={4} background={'red'} color={'white'}>
+                      <Button mb={4} background={'red'} color={'white'} onClick={() => window.location.href = '/pedidos'}>
                         <IoFastFoodOutline />
                         Pedidos
                       </Button>
