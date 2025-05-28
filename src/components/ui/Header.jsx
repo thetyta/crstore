@@ -47,7 +47,9 @@ export default function Header() {
       w="100%"
     >
       <Flex align="center" gap={2}>
-        <Image src="/pizza.png" alt="Logo" h="50px" />
+        <Box as="button" onClick={() => window.location.href = '/main'} p={0} bg="none" border="none">
+          <Image src="/pizza.png" alt="Logo" h="50px" cursor="pointer" />
+        </Box>
         {(userRole === "delivery" || userRole === 'admin') && (
           <Drawer.Root open={open} onOpenChange={(e) => setOpen(e.open)} placement={'start'} size={'xs'}>
             <Drawer.Trigger asChild>

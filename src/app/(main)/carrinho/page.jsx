@@ -43,7 +43,6 @@ export default function CarrinhoPage() {
     return produtos.find(p => p.id === id);
   }
 
-  // Atualiza a quantidade de um item
   const handleUpdateQuantity = async (idProduct, newQuantity) => {
     
     const token = localStorage.getItem("token");
@@ -86,21 +85,17 @@ export default function CarrinhoPage() {
     }
   };
 
-  // Função para finalizar a compra
-  const handleFinalizarCompra = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      await api.post(
-        "/criar-pedido-do-carrinho",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      // Limpa o carrinho e redireciona ou mostra mensagem de sucesso
-      setCart([]);
-      router.push("/main/pedidos"); // ou para a página de pedidos
-    } catch (err) {
-      alert("Erro ao finalizar compra!");
-    }
-  };
+  // const handleFinalizarCompra = async () => {
+  //   try {
+  //     await api.post(
+  //       "/criar-pedido-do-carrinho",
+  //     );
+  //     setCart([]);
+  //     router.push("/main/pedidos");
+  //   } catch (err) {
+  //     alert("Erro ao finalizar compra!");
+  //   }
+  // };
 
   function getTotal() {
     return cart.reduce((total, item) => {
@@ -181,7 +176,7 @@ export default function CarrinhoPage() {
             bg={'green'}
             color={'white'}
             fontWeight={'bold'}
-            onClick={handleFinalizarCompra}
+            onClick={() => router.push("/pagamentos")}
           >
             Finalizar compra
           </Button>

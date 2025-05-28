@@ -32,11 +32,6 @@ export default function PedidosPage() {
     fetchPedidos();
   }, []);
 
-  function getNomeCliente(id) {
-    const user = usuarios.find(u => u.id === id);
-    return user ? user.name : id;
-  }
-
   function getStatusColor(status) {
     if (status === "pending") return "#fc6203";
     if (status === "preparing" || status === "delivering") return "#e8c200";
@@ -68,17 +63,21 @@ export default function PedidosPage() {
                 <span style={{ color: "black" }}>Status: </span>
                 <b style={{ color: getStatusColor(pedido.status) }}>{pedido.status}</b>
               </Text>
-              <Text>Preço total: <b>{pedido.totalPrice}</b></Text>
-              <Text>Cliente: {getNomeCliente(pedido.idUserCustomer)}</Text>
+              <Text>
+                <span style={{ color: "black" }}>Preço total: </span> 
+                <b style={{ color: "green" }}>R$ {pedido.totalPrice}</b>
+              </Text>
+              <Text color={'black'}>Cliente: {pedido.cliente_nome}</Text>
               {pedido.itens && pedido.itens.length > 0 && (
                 <Box mt={2}>
-                  <Text fontWeight="bold">Itens:</Text>
+                  <Text fontWeight="bold" color={'black'}>Itens:</Text>
                   <ul>
                     {pedido.itens.map((item, i) => {
                       const produto = getProdutoInfo(item.idProduct || item.idProduto);
                       return (
                         <li key={i} style={{ marginBottom: 8 }}>
-                          <b>{produto?.name || item.nome || item.name}</b> - Qtd: {item.quantidade || item.quantity}
+                          <b style={{color: 'black'}}>{produto?.name || item.nome || item.name}</b> 
+                          <b style={{color: 'black'}}> - Qtd: {item.quantidade || item.quantity}</b>                          
                           {produto && (
                             <>
                               <br />
