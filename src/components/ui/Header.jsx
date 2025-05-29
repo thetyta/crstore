@@ -1,35 +1,41 @@
 'use client'
-import { Flex, Box, Image, Input, Drawer, Button, Portal, CloseButton } from "@chakra-ui/react";
-import { FaSearch } from "react-icons/fa";
+import { Flex, Box, Image, Drawer, Button, Portal, CloseButton } from "@chakra-ui/react";
 import { FaShoppingCart } from "react-icons/fa";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/utils/axios";
 import { FaAlignJustify } from "react-icons/fa";
 import { MdOutlineDeliveryDining } from "react-icons/md";
 import { IoFastFoodOutline } from "react-icons/io5";
 import { GoGear } from "react-icons/go";
-import { IconButton } from "@chakra-ui/react"
+import { IconButton } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [open, setOpen] = useState(false)
   const [userRole, setUserRole] = useState(null);
+  const [token, setToken] = useState(null);
+  const router = useRouter();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+    }
     setUserRole(null);
-    window.location.href = '/';
+    setToken(null);
+    router.push('/');
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      api.get("/usuario/info", {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => {
-          setUserRole(res.data.resposta.role);
-        })
-        .catch(() => setUserRole(null));
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      setToken(token);
+      if (token) {
+        api.get("/usuario/info")
+          .then(res => {
+            setUserRole(res.data.resposta.role);
+          })
+          .catch(() => setUserRole(null));
+      }
     }
   }, []);
 
@@ -37,8 +43,6 @@ export default function Header() {
     <Flex
       as="header"
       align="center"
-      position={'relative'}
-      zIndex={1}
       justify="space-between"
       px={8}
       py={4}
@@ -47,15 +51,24 @@ export default function Header() {
       w="100%"
     >
       <Flex align="center" gap={2}>
-        <Box as="button" onClick={() => window.location.href = '/main'} p={0} bg="none" border="none">
+        <Box as="button" onClick={() => router.push('/main')} p={0} bg="none" border="none">
           <Image src="/pizza.png" alt="Logo" h="50px" cursor="pointer" />
         </Box>
         {(userRole === "delivery" || userRole === 'admin') && (
           <Drawer.Root open={open} onOpenChange={(e) => setOpen(e.open)} placement={'start'} size={'xs'}>
             <Drawer.Trigger asChild>
-              <Button variant="outline" size="sm" background={'red'} color={'white'} borderRadius={'2%'} _hover={{ background: 'red.600' }}>
-                <FaAlignJustify /> Abrir menu do entregador
-              </Button>
+              <Box display="flex" alignItems="center" ml={2}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  background="red"
+                  color="white"
+                  borderRadius="2%"
+                  _hover={{ background: 'red.600' }}
+                >
+                  <FaAlignJustify /> Abrir menu do entregador
+                </Button>
+              </Box>
             </Drawer.Trigger>
             <Portal>
               <Drawer.Backdrop />
@@ -103,31 +116,12 @@ export default function Header() {
           </Drawer.Root>
         )}
       </Flex>
-      <Box
-        flex="none"
-        maxW="320px"
-        w="100%"
-        mx="auto"
-        position="relative"
-        alignSelf="center"
-      >
-        <Box position="absolute" left="12px" top="50%" transform="translateY(-50%)" zIndex="1">
-          <FaSearch color="black" />
-        </Box>
-        <Input
-          type="text"
-          placeholder="Pesquisar..."
-          bg="gray.100"
-          _placeholder={{ color: "gray.500" }}
-          color={'black'}
-          pl="2.2rem"
-          width="100%"
-        />
-      </Box>
-      <Flex align="center" gap={4} position="absolute" right="20px" top="50%" transform="translateY(-50%)">
-        <IconButton bg={'#dedede'} onClick={() => window.location.href = '/carrinho'}>
-          <FaShoppingCart color='black' />
-        </IconButton>
+      <Flex align="center" gap={4}>
+        {token && (
+          <IconButton bg={'#dedede'} onClick={() => router.push('/carrinho')}>
+            <FaShoppingCart color='black' />
+          </IconButton>
+        )}
         {userRole && (
           <Button
             background="red"

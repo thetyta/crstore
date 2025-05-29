@@ -1,5 +1,5 @@
 'use client'
-import { Button, CloseButton, Drawer, Portal, Flex, Card, Image, Text, Box, Heading, Separator, HStack, Skeleton, SkeletonCircle, SkeletonText, Stack, Toast } from "@chakra-ui/react"
+import { Button, Card, Image, Text, Box, Heading, Separator, HStack, Skeleton, SkeletonText, Input, Flex } from "@chakra-ui/react"
 import { useState, useEffect } from "react"
 import Slider from "react-slick";
 import React from "react";
@@ -7,6 +7,8 @@ import { toaster } from '@/components/ui/toaster';
 import { api } from "@/utils/axios";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { FaSearch } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 const CardSkeleton = () => (
   <Box px={2}>
@@ -28,13 +30,15 @@ export default function Main() {
   const [produtos, setProdutos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
 
   const handleAddToCart = async (item) => {
     if (!item || !item.id) return;
 
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/login");
+      router.push("/");
       return;
     }
     try {
@@ -126,61 +130,81 @@ export default function Main() {
             </Box>
           ))
         ) : (
-          Object.entries(grouped).map(([category, items]) => (
-            items.length > 0 && (
-              <Box key={category} w="100%" maxW="1200px" mb={10}>
-                <Heading size="lg" mb={4} color="white" background={'#b50000'} textAlign="center" rounded="md" position={"relative"}>{category}</Heading>
-                <Separator mb={4} position={"relative"}/>
-                <Box
-                  sx={{
-                    ".slick-prev:before, .slick-next:before": {
-                      color: "#000000",
-                      fontSize: "30px",
-                    },
-                    display: "flex",
-                    justifyContent: "center",
-                    width: "100%",
-                  }}
-                >
-                  <Slider {...sliderSettings}>
-                    {items.map((item) => (
-                      item && (
-                        <Box key={item.id} px={2}>
-                          <Card.Root minW="300px" maxW="300px" overflow="hidden">
-                            <Image
-                              src={item.imageURL ? item.imageURL : "/placeholder.jpg"}
-                              alt={item.name}
-                            />
-                            <Card.Body gap="2">
-                              <Card.Title>{item.name}</Card.Title>
-                              <Card.Description>
-                                {item.description && (
-                                  <span style={{ fontSize: "sm", color: "gray.500", wordBreak: "break-word", whiteSpace: "pre-line" }}>
-                                    {item.description}
-                                  </span>
-                                )}
-                              </Card.Description>
-                              <Text textStyle="2xl" fontWeight="medium" letterSpacing="tight" mt="2">
-                                {item.price} conto
-                              </Text>
-                            </Card.Body>
-                            <Card.Footer gap="2">
-                              <Button
-                                variant="solid"
-                                onClick={() => handleAddToCart(item)}
-                              >
-                                Adicionar no carrinho
-                              </Button>
-                            </Card.Footer>
-                          </Card.Root>
-                        </Box>
-                      )
-                    ))}
-                  </Slider>
-                </Box>
-              </Box>
-            )
-          ))
+          <>
+            <Box mb={6} w="100%" maxW="1200px">
+              <HStack spacing={4} justifyContent="center" mb={6}>
+                <FaSearch color="black"/>
+                <Input
+                  color={'black'}
+                  placeholder="Digite o nome do produto..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  width="300px"
+                  bg="white"
+                />
+              </HStack>
+            </Box>
+            {Object.entries(grouped).map(([category, items]) => {
+              const filteredItems = items.filter(item =>
+                item.name.toLowerCase().includes(searchTerm.toLowerCase())
+              );
+              return (
+                filteredItems.length > 0 && (
+                  <Box key={category} w="100%" maxW="1200px" mb={10}>
+                    <Heading size="lg" mb={4} color="white" background={'#b50000'} textAlign="center" rounded="md" position={"relative"}>{category}</Heading>
+                    <Separator mb={4} position={"relative"}/>
+                    <Box
+                      sx={{
+                        ".slick-prev:before, .slick-next:before": {
+                          color: "#000000",
+                          fontSize: "30px",
+                        },
+                        display: "flex",
+                        justifyContent: "center",
+                        width: "100%",
+                      }}
+                    >
+                      <Slider {...sliderSettings}>
+                        {filteredItems.map((item) => (
+                          item && (
+                            <Box key={item.id} px={2}>
+                              <Card.Root minW="300px" maxW="300px" overflow="hidden">
+                                <Image
+                                  src={item.imageURL ? item.imageURL : "/placeholder.jpg"}
+                                  alt={item.name}
+                                />
+                                <Card.Body gap="2">
+                                  <Card.Title>{item.name}</Card.Title>
+                                  <Card.Description>
+                                    {item.description && (
+                                      <span style={{ fontSize: "sm", color: "gray.500", wordBreak: "break-word", whiteSpace: "pre-line" }}>
+                                        {item.description}
+                                      </span>
+                                    )}
+                                  </Card.Description>
+                                  <Text textStyle="2xl" fontWeight="medium" letterSpacing="tight" mt="2">
+                                    {item.price} conto
+                                  </Text>
+                                </Card.Body>
+                                <Card.Footer gap="2">
+                                  <Button
+                                    variant="solid"
+                                    onClick={() => handleAddToCart(item)}
+                                  >
+                                    Adicionar no carrinho
+                                  </Button>
+                                </Card.Footer>
+                              </Card.Root>
+                            </Box>
+                          )
+                        ))}
+                      </Slider>
+                    </Box>
+                  </Box>
+                )
+              );
+            })}
+          </>
         )}
       </Flex>
   )
