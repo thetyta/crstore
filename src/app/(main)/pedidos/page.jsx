@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from "react";
-import { Box, Heading, Text, Stack, Flex, Separator, Input } from "@chakra-ui/react";
+import { Box, Heading, Text, Stack, Flex, Separator, Input, Button } from "@chakra-ui/react";
 import { api } from "@/utils/axios";
+import { toaster } from "@/components/ui/toaster";
 
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState([]);
@@ -9,16 +10,27 @@ export default function PedidosPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('id');
+  const [userId, setUserId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     async function fetchPedidos() {
       try {
+        const userRes = await api.get("/usuario/info");
+        const id = userRes.data?.resposta?.id;
+        setUserId(id);
+        setUserRole(userRes.data?.resposta?.role);
+
         const [resPedidos, resProdutos] = await Promise.all([
           api.get("/pedido"),
           api.get("/produto"),
         ]);
         setPedidos(resPedidos.data.data || []);
         setProdutos(resProdutos.data.data || []);
+        console.log("Produtos:", resProdutos.data.data);
+        console.log("Pedidos:", resPedidos.data.data);
+        
+        
       } catch {
         setPedidos([]);
         setProdutos([]);
@@ -33,12 +45,30 @@ export default function PedidosPage() {
     if (status === "pending") return "#fc6203";
     if (status === "preparing" || status === "delivering") return "#e8c200";
     if (status === "delivered") return "green";
+    if (status === "canceled") return "red";
     return "gray.600";
   }
 
-  function getProdutoInfo(id) {
-    return produtos.find(p => p.id === id);
+  async function handlePegarPedido(pedidoId) {
+    try {
+      await api.patch(`/criar-pedido/${pedidoId}`, {
+        idUserDelivery: userId,
+      });
+      toaster.create({ title: "Pedido atribuído a você!", type: "success" });
+      const resPedidos = await api.get("/pedido");
+      setPedidos(resPedidos.data.data || []);
+    } catch (err) {
+      toaster.create({ title: "Erro ao pegar pedido", type: "error" });
+    }
   }
+
+  const statusOrder = {
+    pending: 1,
+    preparing: 2,
+    delivering: 3,
+    delivered: 4,
+    canceled: 5,
+  };
 
   return (
     <Box maxW="800px" mx="auto" mt={10} p={4}>
@@ -76,12 +106,18 @@ export default function PedidosPage() {
           </Box>
           {pedidos
             .slice()
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .sort((a, b) => {
+              const statusA = statusOrder[a.status] || 99;
+              const statusB = statusOrder[b.status] || 99;
+              if (statusA !== statusB) return statusA - statusB;
+              return new Date(b.created_at) - new Date(a.created_at);
+            })
             .filter(pedido => {
+              if(userRole === 'user' && pedido.idUserCustomer !== userId) return false;
               const value = searchTerm.toLowerCase();
               if (!value) return true;
               if (searchField === "id") {
-                return String(pedido.id).includes(value);
+                return String(pedido.id).padStart(2, '0').includes(value.padStart(2, '0'));
               }
               if (searchField === "cliente_nome") {
                 return pedido.cliente_nome?.toLowerCase().includes(value);
@@ -91,49 +127,83 @@ export default function PedidosPage() {
               }
               return true;
             })
-            .map((pedido, idx) => (
-              <Box key={pedido.id || idx} borderWidth={1} borderRadius="md" p={4} bg="gray.50">
-                <Flex justify="space-between" align="center">
-                  <Text fontWeight="bold" color={'black'}>Pedido #{pedido.id}</Text>
-                  <Text color="gray.600">{new Date(pedido.created_at).toLocaleString()}</Text>
-                </Flex>
-                <Separator my={2} />
-                <Text>
-                  <span style={{ color: "black" }}>Status: </span>
-                  <b style={{ color: getStatusColor(pedido.status) }}>{pedido.status}</b>
-                </Text>
-                <Text>
-                  <span style={{ color: "black" }}>Preço total: </span> 
-                  <b style={{ color: "green" }}>R$ {pedido.totalPrice}</b>
-                </Text>
-                <Text color={'black'}>Cliente: {pedido.cliente_nome}</Text>
-                <Text color={'black'}>Endereço: {pedido.cliente_endereco}</Text>
-                {pedido.itens && pedido.itens.length > 0 && (
-                  <Box mt={2}>
-                    <Text fontWeight="bold" color={'black'}>Itens:</Text>
-                    <ul>
-                      {pedido.itens.map((item, i) => {
-                        const produto = getProdutoInfo(item.idProduct);
-                        return (
-                          <li key={i} style={{ marginBottom: 8 }}>
-                            <b style={{color: 'black'}}>ID: {item.idProduct} - {item.name}</b> 
-                            <b style={{color: 'black'}}> - Qtd: {item.quantity}</b>                          
-                            {produto && (
-                              <>
-                                Preço: R$ {produto.price}
-                                {produto.description && (
-                                  <Text fontSize="sm" color="gray.600">{produto.description}</Text>
-                                )}
-                              </>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </Box>
-                )}
-              </Box>
-          ))}
+            .map((pedido, idx) => {
+              // Adiciona zero à esquerda se id for de um dígito
+              const pedidoIdFormatado = String(pedido.id).length === 1
+                ? `0${pedido.id}`
+                : String(pedido.id);
+              return (
+                <Box key={pedido.id || idx} borderWidth={1} borderRadius="md" p={4} bg="gray.50">
+                  <Flex justify="space-between" align="center">
+                    <Text fontWeight="bold" color={'black'}>
+                      Pedido #{pedidoIdFormatado}
+                    </Text>
+                    <Text color="gray.600">{new Date(pedido.created_at).toLocaleString()}</Text>
+                  </Flex>
+                  <Separator my={2} />
+                  <Text>
+                    <span style={{ color: "black" }}>Status: </span>
+                    <b style={{ color: getStatusColor(pedido.status) }}>{pedido.status}</b>
+                  </Text>
+                  <Text>
+                    <span style={{ color: "black" }}>Preço total: </span> 
+                    <b style={{ color: "green" }}>R$ {pedido.totalPrice}</b>
+                  </Text>
+                  <Text color={'black'}>Cliente: {pedido.cliente_nome}</Text>
+                  <Text color={'black'}>Endereço: {pedido.cliente_endereco}</Text>
+                  {pedido.idUserDelivery && (
+                    <Text color={'black'}>
+                      Entregador: {pedido.entregador_nome || "Atribuído"}
+                    </Text>
+                  )}
+                  {pedido.itens && pedido.itens.length > 0 && (
+                    <Box mt={2}>
+                      <Text fontWeight="bold" color={'black'}>Itens:</Text>
+                      <ul>
+                        {pedido.itens.map((item, i) => {
+                          return (
+                            <li key={i} style={{ marginBottom: 8 }}>
+                              <b style={{color: 'black'}}>ID: {item.idProduct} - {item.name}</b> 
+                              <b style={{color: 'black'}}> - Qtd: {item.quantity}</b>                          
+                              {produtos && (
+                                <>
+                                  <Text>
+                                    <span style={{color: 'black', fontWeight: 'bold'}}>Preço unitário:</span> 
+                                    <span style={{color: 'green'}}> R$ {item.price}</span>
+                                    {item.quantity > 1 && (
+                                      <>
+                                      <span style={{color: 'black', fontWeight: 'bold'}}> - Preço total:</span>
+                                      <span style={{color: 'green'}}> R$ {item.price * item.quantity}</span>
+                                      </>
+                                    )}
+                                    </Text>
+                                  {item.description && (
+                                    <Text fontSize="sm" color="gray.600">{item.description}</Text>
+                                  )}
+                                </>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {(userRole === 'admin' || userRole === 'delivery') && (!pedido.idUserDelivery) && (
+                        <Flex justify="flex-end">
+                          <Button
+                            color={'black'}
+                            onClick={() => handlePegarPedido(pedido.id)}
+                            isDisabled={pedido.idUserDelivery}
+                          >
+                            {pedido.status === "delivering" || pedido.status === "delivered"
+                              ? "Já em entrega"
+                              : "Pegar pedido"}
+                          </Button>
+                        </Flex>
+                      )}
+                    </Box>
+                  )}
+                </Box>
+            );
+          })}
         </Stack>
       )}
     </Box>
