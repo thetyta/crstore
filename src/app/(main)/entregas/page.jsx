@@ -89,8 +89,8 @@ export default function EntregasPage() {
               <Text color="gray.700">Status: {pedido.status}</Text>
               <Text color="gray.700">Cliente: {pedido.cliente_nome}</Text>
               <Text color="gray.700">Total: R$ {pedido.totalPrice}</Text>
-              <Flex>
-                <Button onClick={() => handleOpenDialog(pedido)}>
+              <Flex mt={3}>
+                <Button bg={'red'} color={'white'} onClick={() => handleOpenDialog(pedido)}>
                   Alterar detalhes do pedido
                 </Button>
               </Flex>

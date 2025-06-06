@@ -133,7 +133,7 @@ export default function PedidosPage() {
                 ? `0${pedido.id}`
                 : String(pedido.id);
               return (
-                <Box key={pedido.id || idx} borderWidth={1} borderRadius="md" p={4} bg="gray.50">
+                <Box key={pedido.id || idx} p={4} bg="gray.50">
                   <Flex justify="space-between" align="center">
                     <Text fontWeight="bold" color={'black'}>
                       Pedido #{pedidoIdFormatado}
@@ -189,9 +189,10 @@ export default function PedidosPage() {
                       {(userRole === 'admin' || userRole === 'delivery') && (!pedido.idUserDelivery) && (
                         <Flex justify="flex-end">
                           <Button
-                            color={'black'}
+                            color={'white'}
                             onClick={() => handlePegarPedido(pedido.id)}
                             isDisabled={pedido.idUserDelivery}
+                            bg={'red'}
                           >
                             {pedido.status === "delivering" || pedido.status === "delivered"
                               ? "Já em entrega"
