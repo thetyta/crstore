@@ -1,15 +1,18 @@
 'use client'
 import { useEffect, useState } from "react";
-import { Box, Heading, Text, Image, Stack, Button, Flex, IconButton } from "@chakra-ui/react";
+import { Box, Heading, Text, Image, Stack, Button, Flex, IconButton, Input } from "@chakra-ui/react";
 import { api } from "@/utils/axios";
 import { useRouter } from "next/navigation";
 import { MdDelete } from "react-icons/md";
-import { CiCirclePlus, CiCircleMinus,   } from "react-icons/ci";
+import { CiCirclePlus, CiCircleMinus} from "react-icons/ci";
 
 export default function CarrinhoPage() {
   const [cart, setCart] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cupom, setCupom] = useState("");
+  const [desconto, setDesconto] = useState(0);
+  const [cupomAplicado, setCupomAplicado] = useState(null);
   const router = useRouter();
 
   // Busca o carrinho e os produtos
@@ -37,6 +40,16 @@ export default function CarrinhoPage() {
       }
     }
     fetchCart();
+    
+    // Carrega o cupom aplicado do localStorage se existir
+    const cupomInfo = localStorage.getItem("cupomAplicado");
+    const descontoInfo = localStorage.getItem("desconto");
+    
+    if (cupomInfo && descontoInfo) {
+      setCupomAplicado(JSON.parse(cupomInfo));
+      setDesconto(parseFloat(descontoInfo));
+      setCupom(JSON.parse(cupomInfo).code);
+    }
   }, []);
 
   function getProduct(id) {
@@ -85,23 +98,84 @@ export default function CarrinhoPage() {
     }
   };
 
-  // const handleFinalizarCompra = async () => {
-  //   try {
-  //     await api.post(
-  //       "/criar-pedido-do-carrinho",
-  //     );
-  //     setCart([]);
-  //     router.push("/main/pedidos");
-  //   } catch (err) {
-  //     alert("Erro ao finalizar compra!");
-  //   }
-  // };
+  const handleVerificarCupom = async () => {
+    if (!cupom.trim()) {
+      alert("Digite um cupom válido");
+      return;
+    }
 
-  function getTotal() {
+    const token = localStorage.getItem("token");
+    try {
+      // Busca todos os cupons
+      const res = await api.get('/cupom', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const cupons = res.data.data;
+      
+      // Procura o cupom pelo código
+      const cupomData = cupons.find(c => c.code === cupom);
+      
+      if (cupomData) {
+        const subtotal = getSubtotal();
+        let valorDesconto = 0;
+        
+        if (cupomData.type === 'valor') {
+          valorDesconto = parseFloat(cupomData.value);
+        } else if (cupomData.type === 'porcentagem') {
+          valorDesconto = (subtotal * parseFloat(cupomData.value)) / 100;
+        }
+        
+        setDesconto(valorDesconto);
+        setCupomAplicado(cupomData);
+        
+        // Salva as informações do cupom no localStorage para usar na tela de pagamentos
+        localStorage.setItem("cupomAplicado", JSON.stringify(cupomData));
+        localStorage.setItem("desconto", valorDesconto.toString());
+        
+        alert(`Cupom aplicado com sucesso! Desconto de R$ ${valorDesconto.toFixed(2)}`);
+      } else {
+        alert("Cupom inválido");
+        setDesconto(0);
+        setCupomAplicado(null);
+        
+        // Remove as informações do cupom do localStorage
+        localStorage.removeItem("cupomAplicado");
+        localStorage.removeItem("desconto");
+      }
+    } catch (err) {
+      alert("Cupom não encontrado ou inválido");
+      setDesconto(0);
+      setCupomAplicado(null);
+      
+      // Remove as informações do cupom do localStorage
+      localStorage.removeItem("cupomAplicado");
+      localStorage.removeItem("desconto");
+    }
+  };
+
+  const handleRemoverCupom = () => {
+    setDesconto(0);
+    setCupomAplicado(null);
+    setCupom("");
+    
+    // Remove as informações do cupom do localStorage
+    localStorage.removeItem("cupomAplicado");
+    localStorage.removeItem("desconto");
+    
+    alert("Cupom removido com sucesso!");
+  };
+
+  function getSubtotal() {
     return cart.reduce((total, item) => {
       const prod = produtos.find(p => p.id === item.idProduct);
       return total + (prod ? prod.price * item.quantity : 0);
     }, 0);
+  }
+
+  function getTotal() {
+    const subtotal = getSubtotal();
+    return Math.max(0, subtotal - desconto);
   }
 
   return (
@@ -171,7 +245,7 @@ export default function CarrinhoPage() {
         </Stack>
       )}
       {cart.length > 0 && ( 
-        <Flex mt={8} justify="space-between" align="center" bg={"white"} rounded={'md'}>
+        <Flex mt={8} justify="space-between" align="center" bg={"white"} rounded={'md'} p={4}>
           <Button
             bg={'green'}
             color={'white'}
@@ -180,9 +254,59 @@ export default function CarrinhoPage() {
           >
             Finalizar compra
           </Button>
-          <Text fontWeight="bold" fontSize="lg" color="green.700">
-            Total: R$ {getTotal().toFixed(2)}
-          </Text>
+          <Box>
+            <Text fontWeight="bold" fontSize="lg" color="green.700">
+              Subtotal: R$ {getSubtotal().toFixed(2)}
+            </Text>
+            {desconto > 0 && (
+              <Text fontWeight="bold" fontSize="md" color="red.500">
+                Desconto: -R$ {desconto.toFixed(2)}
+              </Text>
+            )}
+            <Text fontWeight="bold" fontSize="lg" color="green.700">
+              Total: R$ {getTotal().toFixed(2)}
+            </Text>
+          </Box>
+          <Flex direction="column" align="center" gap={2}>
+            <Text fontWeight="bold" fontSize="lg" color="black">
+              INSERIR CUPOM:
+            </Text>
+            {cupomAplicado ? (
+              <Flex direction="column" align="center" gap={2}>
+                <Text color="green.600" fontWeight="bold">
+                  Cupom "{cupomAplicado.code}" aplicado!
+                </Text>
+                <Button
+                  bg={'red'}
+                  color={'white'}
+                  fontWeight={'bold'}
+                  onClick={handleRemoverCupom}
+                  size="sm"
+                >
+                  Remover Cupom
+                </Button>
+              </Flex>
+            ) : (
+              <Flex align="center" gap={2}>
+                <Input 
+                  color={'black'}
+                  placeholder="Cupom de desconto" 
+                  width="200px"
+                  value={cupom}
+                  onChange={(e) => setCupom(e.target.value)}
+                />
+                <Button
+                  bg={'blue'}
+                  color={'white'}
+                  fontWeight={'bold'}
+                  onClick={handleVerificarCupom}
+                  size="md"
+                >
+                  Aplicar
+                </Button>
+              </Flex>
+            )}
+          </Flex>
         </Flex>
       )}    
     </Box>

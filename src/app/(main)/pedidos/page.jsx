@@ -26,11 +26,7 @@ export default function PedidosPage() {
           api.get("/produto"),
         ]);
         setPedidos(resPedidos.data.data || []);
-        setProdutos(resProdutos.data.data || []);
-        console.log("Produtos:", resProdutos.data.data);
-        console.log("Pedidos:", resPedidos.data.data);
-        
-        
+        setProdutos(resProdutos.data.data || []);        
       } catch {
         setPedidos([]);
         setProdutos([]);
@@ -145,10 +141,56 @@ export default function PedidosPage() {
                     <span style={{ color: "black" }}>Status: </span>
                     <b style={{ color: getStatusColor(pedido.status) }}>{pedido.status}</b>
                   </Text>
-                  <Text>
-                    <span style={{ color: "black" }}>Preço total: </span> 
-                    <b style={{ color: "green" }}>R$ {pedido.totalPrice}</b>
-                  </Text>
+                  
+                  {/* Exibir informações de preço com cupom para admin e entregador */}
+                  {(userRole === 'admin' || userRole === 'delivery') ? (
+                    <>
+                      {/* Tenta diferentes possibilidades de campos do cupom */}
+                      {(pedido.cupom_code || pedido.idCupom || pedido.cupom || pedido.coupon_code) && (
+                        <>
+                          <Text>
+                            <span style={{ color: "black" }}>Cupom utilizado: </span>
+                            <b style={{ color: "blue" }}>
+                              {pedido.cupom_code || pedido.coupon_code || `Cupom ID: ${pedido.idCupom || pedido.cupom}`}
+                            </b>
+                          </Text>
+                          <Text>
+                            <span style={{ color: "black" }}>Preço antes do desconto: </span>
+                            <b style={{ color: "gray.600" }}>
+                              R$ {(parseFloat(pedido.totalPrice) + parseFloat(
+                                pedido.totalDiscount || 
+                                pedido.desconto || 
+                                pedido.discount || 
+                                pedido.coupon_discount ||
+                                0
+                              )).toFixed(2)}
+                            </b>
+                          </Text>
+                          <Text>
+                            <span style={{ color: "black" }}>Desconto aplicado: </span>
+                            <b style={{ color: "red" }}>
+                              -R$ {parseFloat(
+                                pedido.totalDiscount || 
+                                pedido.desconto || 
+                                pedido.discount || 
+                                pedido.coupon_discount ||
+                                0
+                              ).toFixed(2)}
+                            </b>
+                          </Text>
+                        </>
+                      )}
+                      <Text>
+                        <span style={{ color: "black" }}>Preço final: </span> 
+                        <b style={{ color: "green" }}>R$ {pedido.totalPrice}</b>
+                      </Text>
+                    </>
+                  ) : (
+                    <Text>
+                      <span style={{ color: "black" }}>Preço total: </span> 
+                      <b style={{ color: "green" }}>R$ {pedido.totalPrice}</b>
+                    </Text>
+                  )}
                   <Text color={'black'}>Cliente: {pedido.cliente_nome}</Text>
                   <Text color={'black'}>Endereço: {pedido.cliente_endereco}</Text>
                   {pedido.idUserDelivery && (

@@ -40,8 +40,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ## COISAS PARA FAZER/ARRUMAR
 
 ># BACK
-> - Atualizar enum do pedido para suportar "cancelado"
+>
 ># FRONT
-> - Alterar página de pagamento para colocar cupons 
+> - Fazer com que cupons zerados nao sejam mais usados
 > - Botão pra alterar tema do site
-> - Barra de busca
